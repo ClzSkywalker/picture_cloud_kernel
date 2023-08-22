@@ -1,0 +1,110 @@
+[
+  {
+    "id": -1,
+    "key": "test",
+    "zh": "成功",
+    "en": "success"
+  },
+  {
+    "id": -2,
+    "key": "test_args",
+    "zh": "成功%{name}",
+    "en": "success%{name}"
+  },
+  {
+    "id": 0,
+    "key": "Ok",
+    "zh": "成功",
+    "en": "success"
+  },
+  {
+    "id": 101001,
+    "key": "DbCreate",
+    "en": "Database creation failure",
+    "zh": "数据库创建失败"
+  },
+  {
+    "id": 101002,
+    "key": "DbInit",
+    "en": "Description Database initialization failed",
+    "zh": "数据库初始化失败"
+  },
+  {
+    "id": 101003,
+    "key": "EncryptionError",
+    "en": "Encryption error",
+    "zh": "加密错误"
+  },
+  {
+    "id": 102001,
+    "key": "TokenExpire",
+    "en": "token expiration",
+    "zh": "token过期"
+  },
+  {
+    "id": 102002,
+    "key": "TokenInvalid",
+    "en": "Invalid token",
+    "zh": "token无效"
+  },
+  {
+    "id": 102003,
+    "key": "TokenGenerate",
+    "en": "token creation failure",
+    "zh": "token创建失败"
+  },
+  {
+    "id": 201001,
+    "key": "UserCreate",
+    "en": "User creation failure",
+    "zh": "用户创建失败"
+  },
+  {
+    "id": 201002,
+    "key": "UserNotfound",
+    "en": "User not found",
+    "zh": "用户未找到"
+  },
+  {
+    "id": 201003,
+    "key": "UserUpdate",
+    "en": "User update failure",
+    "zh": "用户更新失败"
+  },
+  {
+    "id": 201004,
+    "key": "UserLogin",
+    "en": "The user account or password is incorrect",
+    "zh": "用户账号或密码错误"
+  },
+  {
+    "id": 201005,
+    "key": "UseResetInfo",
+    "en": "User base information has been reset",
+    "zh": "用户基础信息已被重置过"
+  },
+  {
+    "id": 202001,
+    "key": "TaskNotFound",
+    "en": "Task not found",
+    "zh": "任务未找到"
+  },
+  {
+    "id": 202002,
+    "key": "TaskAdd",
+    "en": "Failed to add task",
+    "zh": "新增任务失败"
+  },
+  {
+    "id": 202003,
+    "key": "TaskUpdate",
+    "en": "Failed to modify a task",
+    "zh": "修改任务失败"
+  },
+  {
+    "id": 202004,
+    "key": "TaskDelete",
+    "en": "Failed to delete a task",
+    "zh": "删除任务失败"
+  }
+]

@@ -1,0 +1,1 @@
+macrox::generate_i18n_enum!();
