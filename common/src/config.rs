@@ -1,4 +1,5 @@
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
+
 use serde::Serialize;
 
 pub const VERSION: &str = "0.0.1";
@@ -13,7 +14,7 @@ pub struct AppConfig {
 }
 
 // pub static  <AppConfig>
-pub static APP_CONFIG: OnceCell<AppConfig> = OnceCell::new();
+pub static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(untagged)]

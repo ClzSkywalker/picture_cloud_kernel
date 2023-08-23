@@ -9,15 +9,16 @@ name = "migration"
 path = "src/lib.rs"
 
 [dependencies]
-async-std = { version = "1", features = ["attributes", "tokio1"] }
+# async-std = { version = "1", features = ["attributes", "tokio1"] }
 rusqlite = { version = "0.29.0", features = ["bundled"] }
 
 [dependencies.sea-orm-migration]
-version = "0.11.0"
+version = "0.12"
 features = [
   # Enable at least one `ASYNC_RUNTIME` and `DATABASE_DRIVER` feature if you want to run migration via CLI.
   # View the list of supported features at https://www.sea-ql.org/SeaORM/docs/install-and-config/database-and-async-runtime.
   # e.g.
-  # "runtime-tokio-rustls",  # `ASYNC_RUNTIME` feature
+  "runtime-tokio-rustls",  # `ASYNC_RUNTIME` feature
+  "sqlx-sqlite",
   # "sqlx-postgres",         # `DATABASE_DRIVER` feature
 ]

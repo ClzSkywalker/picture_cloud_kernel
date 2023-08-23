@@ -11,7 +11,13 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(FileInfo::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Base::Id).string().not_null().primary_key())
+                    .col(
+                        ColumnDef::new(Base::Id)
+                            .integer()
+                            .not_null()
+                            .primary_key()
+                            .auto_increment(),
+                    )
                     .col(ColumnDef::new(Base::CreatedAt).date_time())
                     .col(ColumnDef::new(Base::UpdatedAt).date_time())
                     .col(ColumnDef::new(Base::DeletedAt).date_time())
@@ -24,6 +30,89 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(FileInfo::Score).integer())
                     .col(ColumnDef::new(FileInfo::Size).integer())
                     .col(ColumnDef::new(FileInfo::Color).json())
+                    .col(ColumnDef::new(FileInfo::ClassifyId).json())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Classify::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Base::Id)
+                            .integer()
+                            .not_null()
+                            .primary_key()
+                            .auto_increment(),
+                    )
+                    .col(ColumnDef::new(Base::CreatedAt).date_time())
+                    .col(ColumnDef::new(Base::UpdatedAt).date_time())
+                    .col(ColumnDef::new(Base::DeletedAt).date_time())
+                    .col(ColumnDef::new(Classify::Name).string())
+                    .col(ColumnDef::new(Classify::ParentId).integer())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TagInfo::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Base::Id)
+                            .integer()
+                            .not_null()
+                            .primary_key()
+                            .auto_increment(),
+                    )
+                    .col(ColumnDef::new(Base::CreatedAt).date_time())
+                    .col(ColumnDef::new(Base::UpdatedAt).date_time())
+                    .col(ColumnDef::new(Base::DeletedAt).date_time())
+                    .col(ColumnDef::new(TagInfo::Name).string())
+                    .col(ColumnDef::new(TagInfo::ParentId).integer())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TagToFile::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Base::Id)
+                            .integer()
+                            .not_null()
+                            .primary_key()
+                            .auto_increment(),
+                    )
+                    .col(ColumnDef::new(Base::CreatedAt).date_time())
+                    .col(ColumnDef::new(Base::UpdatedAt).date_time())
+                    .col(ColumnDef::new(Base::DeletedAt).date_time())
+                    .col(ColumnDef::new(TagToFile::Tid).integer())
+                    .col(ColumnDef::new(TagToFile::Fid).integer())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Classify::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Base::Id)
+                            .integer()
+                            .not_null()
+                            .primary_key()
+                            .auto_increment(),
+                    )
+                    .col(ColumnDef::new(Base::CreatedAt).date_time())
+                    .col(ColumnDef::new(Base::UpdatedAt).date_time())
+                    .col(ColumnDef::new(Base::DeletedAt).date_time())
                     .to_owned(),
             )
             .await?;
@@ -33,7 +122,18 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .drop_table(Table::drop().table(FileInfo::Table).to_owned())
-            .await
+            .await?;
+
+        manager
+            .drop_table(Table::drop().table(Classify::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(TagInfo::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(TagToFile::Table).to_owned())
+            .await?;
+        Ok(())
     }
 }
 
@@ -57,4 +157,26 @@ enum FileInfo {
     Score,
     Size,
     Color,
+    ClassifyId,
+}
+
+#[derive(Iden)]
+enum Classify {
+    Table,
+    Name,
+    ParentId,
+}
+
+#[derive(Iden)]
+enum TagInfo {
+    Table,
+    Name,
+    ParentId,
+}
+
+#[derive(Iden)]
+enum TagToFile {
+    Table,
+    Tid,
+    Fid,
 }

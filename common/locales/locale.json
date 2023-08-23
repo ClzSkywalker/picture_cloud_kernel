@@ -31,9 +31,9 @@
   },
   {
     "id": 101003,
-    "key": "EncryptionError",
-    "en": "Encryption error",
-    "zh": "加密错误"
+    "key": "DbUp",
+    "en": "Database migration failure",
+    "zh": "数据库迁移失败"
   },
   {
     "id": 102001,

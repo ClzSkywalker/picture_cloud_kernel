@@ -27,7 +27,7 @@ strum = { workspace = true }
 strum_macros = { workspace = true }
 sea-orm = { workspace = true }
 rusty_ulid = { wrokspace = true }
-once_cell = { wrokspace = true }
+# once_cell = { wrokspace = true }
 axum = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
