@@ -41,4 +41,8 @@ impl Model {
             parent_id: Set(self.parent_id),
         }
     }
+
+    pub fn table_name() -> String {
+        String::from("tag_info")
+    }
 }

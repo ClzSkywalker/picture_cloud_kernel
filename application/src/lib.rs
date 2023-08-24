@@ -1,3 +1,7 @@
+pub mod ability;
+pub mod command;
+pub mod query;
+
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
