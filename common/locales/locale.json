@@ -54,57 +54,15 @@
     "zh": "token创建失败"
   },
   {
-    "id": 201001,
-    "key": "UserCreate",
-    "en": "User creation failure",
-    "zh": "用户创建失败"
+    "id": 103001,
+    "key": "TagParentNotExist",
+    "en": "The parent tag does not exist",
+    "zh": "父标签不存在"
   },
   {
-    "id": 201002,
-    "key": "UserNotfound",
-    "en": "User not found",
-    "zh": "用户未找到"
-  },
-  {
-    "id": 201003,
-    "key": "UserUpdate",
-    "en": "User update failure",
-    "zh": "用户更新失败"
-  },
-  {
-    "id": 201004,
-    "key": "UserLogin",
-    "en": "The user account or password is incorrect",
-    "zh": "用户账号或密码错误"
-  },
-  {
-    "id": 201005,
-    "key": "UseResetInfo",
-    "en": "User base information has been reset",
-    "zh": "用户基础信息已被重置过"
-  },
-  {
-    "id": 202001,
-    "key": "TaskNotFound",
-    "en": "Task not found",
-    "zh": "任务未找到"
-  },
-  {
-    "id": 202002,
-    "key": "TaskAdd",
-    "en": "Failed to add task",
-    "zh": "新增任务失败"
-  },
-  {
-    "id": 202003,
-    "key": "TaskUpdate",
-    "en": "Failed to modify a task",
-    "zh": "修改任务失败"
-  },
-  {
-    "id": 202004,
-    "key": "TaskDelete",
-    "en": "Failed to delete a task",
-    "zh": "删除任务失败"
+    "id": 103002,
+    "key": "TagQuery",
+    "en": "Tag query failure",
+    "zh": "标签查询失败"
   }
 ]

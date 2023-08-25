@@ -6,3 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+common = { path = "../common" }
+domain = { path = "../domain" }
+middlewarex = { path = "../middlewarex" }
+infrastructure = { path = "../infrastructure" }
+application = { path = "../application" }
+
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

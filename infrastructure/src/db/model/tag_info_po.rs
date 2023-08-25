@@ -10,6 +10,7 @@ pub struct Model {
     pub updated_at: Option<DateTimeLocal>,
     pub deleted_at: Option<DateTimeLocal>,
     pub name: String,
+    pub sort: i32,
     pub parent_id: i32,
 }
 
@@ -38,6 +39,7 @@ impl Model {
             updated_at: NotSet,
             deleted_at: NotSet,
             name: Set(self.name.clone()),
+            sort: Set(self.sort),
             parent_id: Set(self.parent_id),
         }
     }

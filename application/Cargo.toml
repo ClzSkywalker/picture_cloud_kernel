@@ -6,3 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+common = { path = "../common" }
+base = { path = "../base" }
+domain = { path = "../domain" }
+infrastructure = { path = "../infrastructure" }
+middlewarex = { path = "../middlewarex" }
+
+sea-orm = { workspace = true }
+sea-query = { workspace = true }
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+chrono = { workspace = true }
+async-trait = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+validator = { workspace = true }

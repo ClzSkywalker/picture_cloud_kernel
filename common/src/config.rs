@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::{path::MAIN_SEPARATOR, sync::OnceLock};
 
 use serde::Serialize;
 
@@ -7,10 +7,33 @@ pub const VERSION: &str = "0.0.1";
 #[derive(Debug, Default, Clone)]
 pub struct AppConfig {
     pub port: i32,
-    pub db_path: String,
-    pub log_path: String,
+    pub workspace: String,
+    pub log: String,
+    pub database: String,
     pub mode: ServerMode,
     pub version: String,
+}
+
+impl AppConfig {
+    pub fn init(&mut self) {
+        let mut db = String::from(self.workspace.clone());
+        db.push(MAIN_SEPARATOR);
+        db.push_str("database");
+        db.push(MAIN_SEPARATOR);
+        self.database = db;
+
+        let mut log = String::from(self.workspace.clone());
+        log.push(MAIN_SEPARATOR);
+        log.push_str("logs");
+        log.push(MAIN_SEPARATOR);
+        self.log = log;
+    }
+
+    pub fn db_local_path(&self) -> String {
+        let mut path = String::from(self.database.clone());
+        path.push_str("local_db");
+        path
+    }
 }
 
 // pub static  <AppConfig>

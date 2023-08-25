@@ -72,6 +72,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Base::UpdatedAt).date_time())
                     .col(ColumnDef::new(Base::DeletedAt).date_time())
                     .col(ColumnDef::new(TagInfo::Name).string())
+                    .col(ColumnDef::new(TagInfo::Sort).integer())
                     .col(ColumnDef::new(TagInfo::ParentId).integer())
                     .to_owned(),
             )
@@ -171,6 +172,7 @@ enum Classify {
 enum TagInfo {
     Table,
     Name,
+    Sort,
     ParentId,
 }
 
