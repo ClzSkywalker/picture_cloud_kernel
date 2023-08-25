@@ -4,25 +4,33 @@ use base::ddd::{ability::IAbility, application_service::IApplicationService};
 use common::contextx::AppContext;
 use domain::aggregate::preclude::TagAggregate;
 
-use crate::{ability::tag::cmd::TagCreateCmd, command::itag_service::ITagService};
+use crate::{
+    ability::tag::cmd::{tag_create_cmd::TagCreateCmd, tag_update_cmd::TagUpdateCmd},
+    command::itag_service::ITagService,
+};
 
-pub struct TagService<CTA>
+pub struct TagService<TCA, TUA>
 where
-    CTA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
+    TCA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
+    TUA: IAbility<R = TagAggregate, CMD = TagUpdateCmd>,
 {
     pub ctx: Arc<AppContext>,
-    pub tag_create_ability: CTA,
+    pub tag_create_ability: TCA,
+    pub tag_update_ability: TUA,
 }
 
-impl<CTA> IApplicationService for TagService<CTA> where
-    CTA: IAbility<R = TagAggregate, CMD = TagCreateCmd>
+impl<TCA, TUA> IApplicationService for TagService<TCA, TUA>
+where
+    TCA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
+    TUA: IAbility<R = TagAggregate, CMD = TagUpdateCmd>,
 {
 }
 
 #[async_trait::async_trait]
-impl<CTA> ITagService for TagService<CTA>
+impl<TCA, TUA> ITagService for TagService<TCA, TUA>
 where
-    CTA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
+    TCA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
+    TUA: IAbility<R = TagAggregate, CMD = TagUpdateCmd>,
 {
     async fn create(&mut self, cmd: &TagCreateCmd) -> anyhow::Result<i32> {
         let tag = match __self.tag_create_ability.execute_ability(cmd).await {
@@ -32,5 +40,14 @@ where
             }
         };
         Ok(tag.id)
+    }
+
+    async fn update(&mut self, cmd: &TagUpdateCmd) -> anyhow::Result<()> {
+        match __self.tag_update_ability.execute_ability(cmd).await {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                anyhow::bail!(e)
+            }
+        }
     }
 }

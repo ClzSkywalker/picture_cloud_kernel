@@ -55,7 +55,7 @@ impl TagRepository {
         match res {
             Ok(r) => Ok(r),
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, id);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, id);
                 anyhow::bail!(e);
             }
         }
@@ -77,7 +77,7 @@ impl TagRepository {
         match res {
             Ok(r) => Ok(r),
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, id);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, id);
                 anyhow::bail!(e);
             }
         }
@@ -120,7 +120,7 @@ impl IRepository for TagRepository {
         let tag = match res {
             Ok(r) => r,
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, ag);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, ag);
                 anyhow::bail!(e);
             }
         };
@@ -143,7 +143,7 @@ impl IRepository for TagRepository {
         match res {
             Ok(_) => Ok(()),
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, id);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, id);
                 anyhow::bail!(e);
             }
         }
@@ -161,7 +161,7 @@ impl IRepository for TagRepository {
         match res {
             Ok(_) => {}
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, ag);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, ag);
                 anyhow::bail!(e);
             }
         };
@@ -182,7 +182,7 @@ impl IRepository for TagRepository {
                 None => return Ok(None),
             },
             Err(e) => {
-                tracing::error!("{:?},e:{},model:{:?}", self.ctx, e, id);
+                tracing::error!("{:?},e:{},data:{:?}", self.ctx, e, id);
                 anyhow::bail!(e)
             }
         };
@@ -229,7 +229,7 @@ impl ITagRespository for TagRepository {
                 }
             },
             Err(e) => {
-                tracing::error!("{},e:{},model:{:?}", self.ctx.to_string(), e, name);
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, name);
                 anyhow::bail!(e)
             }
         };
@@ -249,5 +249,44 @@ impl ITagRespository for TagRepository {
         };
 
         Ok(Some(TagDeserialize(tag, Some(prevs), Some(nexts))))
+    }
+
+    async fn exist_name(&self, name: String) -> anyhow::Result<bool> {
+        let active = TagInfoEntity::find().filter(
+            Condition::all()
+                .add(Expr::col(TagInfoColumn::Name).eq(name.clone()))
+                .add(Expr::col(TagInfoColumn::DeletedAt).is_null()),
+        );
+
+        let res = match &self.ctx.tx {
+            Some(r) => active.count(r).await,
+            None => active.count(&self.ctx.db).await,
+        };
+
+        match res {
+            Ok(r) => Ok(r > 0),
+            Err(e) => {
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, name);
+                anyhow::bail!(e)
+            }
+        }
+    }
+
+    async fn exist_parent_id(&self, id: i32) -> anyhow::Result<bool> {
+        let active = TagInfoEntity::find_by_id(id)
+            .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()));
+
+        let res = match &self.ctx.tx {
+            Some(r) => active.count(r).await,
+            None => active.count(&self.ctx.db).await,
+        };
+
+        match res {
+            Ok(r) => Ok(r > 0),
+            Err(e) => {
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, id);
+                anyhow::bail!(e)
+            }
+        }
     }
 }

@@ -64,5 +64,11 @@
     "key": "TagQuery",
     "en": "Tag query failure",
     "zh": "标签查询失败"
+  },
+  {
+    "id": 103003,
+    "key": "TagNameExist",
+    "en": "Tag already exists",
+    "zh": "标签已存在"
   }
 ]

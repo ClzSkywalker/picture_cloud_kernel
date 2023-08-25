@@ -6,9 +6,9 @@ use common::errorx::Errorx;
 use domain::aggregate::preclude::*;
 use domain::aggregate::tag::repository::itag_repository::ITagRespository;
 
-use super::cmd::tag_create_cmd::TagCreateCmd;
+use super::cmd::tag_update_cmd::TagUpdateCmd;
 
-pub struct TagCreateAbility<TR>
+pub struct TagUpdateAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
@@ -17,12 +17,12 @@ where
 }
 
 #[async_trait::async_trait]
-impl<TR> IAbility for TagCreateAbility<TR>
+impl<TR> IAbility for TagUpdateAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
     type R = TagAggregate;
-    type CMD = TagCreateCmd;
+    type CMD = TagUpdateCmd;
 
     // 检测名字、父标签是否已存在
     async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
@@ -72,7 +72,7 @@ where
     async fn execute(&self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         let tag = cmd.to_ag();
 
-        let tag = match self.tag_repository.insert(tag).await {
+        match self.tag_repository.update(tag.clone()).await {
             Ok(r) => r,
             Err(e) => {
                 anyhow::bail!(e);
