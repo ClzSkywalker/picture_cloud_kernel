@@ -6,7 +6,7 @@ use common::errorx::Errorx;
 use domain::aggregate::preclude::*;
 use domain::aggregate::tag::repository::itag_repository::ITagRespository;
 
-use super::cmd::tag_delete_cmd::TagDeleteCmd;
+use super::cmd::tag_delete_cmd::{TagDeleteCmd, TAG_DEL_CHILD, TAG_DEL_INHERENT, TAG_DEL_ROOT};
 
 pub struct TagDeleteAbility<TR>
 where
@@ -14,6 +14,7 @@ where
 {
     pub tag_repository: TR,
     pub ctx: Arc<AppContext>,
+    tag: Option<TagAggregate>,
 }
 
 #[async_trait::async_trait]
@@ -44,26 +45,19 @@ where
             }
         };
 
-        if tag.parent_id == 0 {
-            return Ok(());
-        }
-
-        match __self.tag_repository.exist_parent_id(tag.parent_id).await {
-            Ok(r) => {
-                if r {
-                    anyhow::bail!(Errorx::new(
-                        self.ctx.locale,
-                        common::i18n::I18nKey::TagNameExist
-                    ))
-                }
-            }
-            Err(_) => {
+        match cmd.del_type {
+            TAG_DEL_CHILD => {}
+            TAG_DEL_INHERENT => {}
+            TAG_DEL_ROOT => {}
+            _ => {
                 anyhow::bail!(Errorx::new(
                     self.ctx.locale,
-                    common::i18n::I18nKey::TagQuery
+                    common::i18n::I18nKey::ParamError
                 ))
             }
         };
+
+        self.tag = Some(tag);
 
         Ok(())
     }
