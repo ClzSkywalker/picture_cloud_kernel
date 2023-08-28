@@ -1,17 +1,77 @@
 use std::{collections::HashSet, fs};
 
 use proc_macro2::TokenStream;
-use regex::Regex;
 use quote::quote;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use syn::LitStr;
 
-pub fn locale(_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+const FILE_JSON: &str = "json";
+const FILE_CSV: &str = "csv";
+
+#[derive(Debug)]
+struct Option {
+    locales_path: String,
+    file_type: String,
+}
+
+impl syn::parse::Parse for Option {
+    fn parse(input: syn::parse::ParseStream) -> syn::parse::Result<Self> {
+        let params = input.parse::<LitStr>().unwrap();
+        let params_value = params.value();
+
+        dbg!(params_value.clone());
+
+        let params_vec: Vec<&str> = params_value.split(",").collect();
+
+        assert_eq!(
+            params_vec.len(),
+            2,
+            "The passing of two parameters is required"
+        );
+
+        let locales_path = params_vec[0].to_string();
+        let file_type = params_vec[1].to_string();
+
+        Ok(Self {
+            locales_path,
+            file_type,
+        })
+    }
+}
+
+pub fn locale(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    // 校验参数
+    let option = match syn::parse::<Option>(input) {
+        Ok(input) => input,
+        Err(err) => return err.to_compile_error().into(),
+    };
+
     let cargo_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is empty");
     let current_dir = std::path::PathBuf::from(cargo_dir);
-    let locales_path = current_dir.join("locales/locale.json");
+    let locales_path = current_dir.join(option.locales_path);
 
-    let json_data = fs::read_to_string(locales_path.as_path().to_str().unwrap()).unwrap();
-    let str_list: Vec<EnumDefinition> = serde_json::from_str(&json_data).unwrap();
+    let str_list: Vec<EnumDefinition> = match option.file_type.as_str() {
+        FILE_JSON => {
+            let json_data = fs::read_to_string(locales_path.as_path().to_str().unwrap()).unwrap();
+            serde_json::from_str(&json_data).unwrap()
+        }
+        FILE_CSV => {
+            let mut ls: Vec<EnumDefinition> = Vec::new();
+            let mut rdr = csv::Reader::from_path(locales_path.as_path().to_str().unwrap())
+                .expect("path不存在");
+
+            for result in rdr.deserialize() {
+                let record: EnumDefinition = result.unwrap();
+                ls.push(record);
+            }
+            ls
+        }
+        _ => {
+            panic!()
+        }
+    };
+
     check_json_data(&str_list);
     // 如果返回的结构中带()这种特殊符号，会自动加上"，恶心
     // 获取 key
@@ -67,7 +127,6 @@ pub fn locale(_input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     };
     code.into()
 }
-
 
 #[derive(Debug, Deserialize, Serialize)]
 struct EnumDefinition {

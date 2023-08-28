@@ -70,5 +70,11 @@
     "key": "TagNameExist",
     "en": "Tag already exists",
     "zh": "标签已存在"
+  },
+  {
+    "id": 103004,
+    "key": "TagNotExist",
+    "en": "Tag does not exist",
+    "zh": "标签不存在"
   }
 ]
