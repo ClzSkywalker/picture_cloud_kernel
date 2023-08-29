@@ -69,7 +69,7 @@ where
     async fn check_idempotent(&mut self, _: &Self::CMD) -> anyhow::Result<()> {
         Ok(())
     }
-    async fn execute(&self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
+    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         let tag = cmd.to_ag();
 
         match self.tag_repository.update(tag.clone()).await {

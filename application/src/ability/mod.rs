@@ -8,8 +8,11 @@ use infrastructure::db::repository::new_tag_repository;
 use std::sync::Arc;
 
 use self::tag::{
-    cmd::{tag_create_cmd::TagCreateCmd, tag_update_cmd::TagUpdateCmd},
+    cmd::{
+        tag_create_cmd::TagCreateCmd, tag_delete_cmd::TagDeleteCmd, tag_update_cmd::TagUpdateCmd,
+    },
     tag_create_ability::TagCreateAbility,
+    tag_delete_ability::TagDeleteAbility,
     tag_update_ability::TagUpdateAbility,
 };
 
@@ -19,6 +22,16 @@ pub fn new_tag_create_ability(
     TagCreateAbility {
         tag_repository: new_tag_repository(ctx.clone()),
         ctx: ctx.clone(),
+    }
+}
+
+pub fn new_tag_delete_ability(
+    ctx: &mut AppContext,
+) -> impl IAbility<R = TagAggregate, CMD = TagDeleteCmd> {
+    TagDeleteAbility {
+        tag_repository: new_tag_repository(ctx.clone()),
+        ctx: ctx,
+        tag: None,
     }
 }
 

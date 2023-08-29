@@ -1,11 +1,12 @@
-use std::sync::Arc;
-
 use super::super::converter::preclude::*;
 use super::super::model::preclude::*;
 use base::ddd::repository::IRepository;
 use chrono::Local;
-use common::{contextx::AppContext, errorx::Errorx};
+use common::contextx::AppContext;
+use common::errorx::Errorx;
 use domain::aggregate::{preclude::*, tag::repository::itag_repository::ITagRespository};
+
+use std::sync::Arc;
 
 use sea_orm::{prelude::*, ActiveValue::NotSet, DbBackend, QuerySelect, Set, Statement};
 use sea_query::Condition;
@@ -34,11 +35,11 @@ const QUERY_NEXT_SQL: &str = r#"WITH RECURSIVE cte AS (
   SELECT *
   FROM cte;"#;
 
-pub struct TagRepository {
-    pub ctx: Arc<AppContext>,
+pub struct TagRepository<'a> {
+    pub ctx: &'a AppContext,
 }
 
-impl TagRepository {
+impl<'a> TagRepository<'a> {
     async fn find_prevs(&self, id: i32) -> anyhow::Result<Vec<TagInfoModel>> {
         let sql = QUERY_PREV_SQL
             .replace("[table]", TagInfoModel::table_name().as_str())
@@ -85,7 +86,7 @@ impl TagRepository {
 }
 
 #[async_trait::async_trait]
-impl IRepository for TagRepository {
+impl<'a> IRepository for TagRepository<'a> {
     type AG = TagAggregate;
     type ID = i32;
     async fn insert(&self, ag: Self::AG) -> anyhow::Result<Self::AG> {
@@ -207,6 +208,58 @@ impl IRepository for TagRepository {
 
 #[async_trait::async_trait]
 impl ITagRespository for TagRepository {
+    async fn del_by_ids(&self, ids: Vec<i32>) -> anyhow::Result<()> {
+        let model = TagInfoActive {
+            deleted_at: Set(Some(Local::now())),
+            ..Default::default()
+        };
+        let active = TagInfoEntity::update_many().set(model).filter(
+            Condition::all()
+                .add(Expr::col(TagInfoColumn::DeletedAt).is_null())
+                .add(Expr::col(TagInfoColumn::Id).is_in(ids.clone())),
+        );
+
+        let res = match &self.ctx.tx {
+            Some(r) => active.exec(r).await,
+            None => active.exec(&self.ctx.db).await,
+        };
+
+        match res {
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!("{},e:{},data:{:?}", self.ctx, e, ids);
+                anyhow::bail!(e)
+            }
+        };
+        Ok(())
+    }
+
+    async fn update_parent_by_ids(&self, ids: Vec<i32>, parent_id: i32) -> anyhow::Result<()> {
+        let model = TagInfoActive {
+            parent_id: Set(parent_id),
+            ..Default::default()
+        };
+        let active = TagInfoEntity::update_many().set(model).filter(
+            Condition::all()
+                .add(Expr::col(TagInfoColumn::DeletedAt).is_null())
+                .add(Expr::col(TagInfoColumn::Id).is_in(ids.clone())),
+        );
+
+        let res = match &self.ctx.tx {
+            Some(r) => active.exec(r).await,
+            None => active.exec(&self.ctx.db).await,
+        };
+
+        match res {
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!("{},e:{},data:{:?}", self.ctx.to_string(), e, ids);
+                anyhow::bail!(e)
+            }
+        };
+        Ok(())
+    }
+
     async fn find_by_name(&self, name: String) -> anyhow::Result<Option<TagAggregate>> {
         let active = TagInfoEntity::find()
             .filter(

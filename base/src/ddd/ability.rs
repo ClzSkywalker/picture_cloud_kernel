@@ -30,7 +30,7 @@ pub trait IAbility: Send + Sync {
     /// param           {*} self
     /// return          {*}
     ///    
-    async fn execute(&self, cmd: &Self::CMD) -> anyhow::Result<Self::R>;
+    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R>;
 
     async fn execute_ability(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         match self.check_handler(cmd).await {

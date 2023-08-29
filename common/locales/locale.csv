@@ -13,3 +13,5 @@
 "203002","TagQuery","标签查询失败","Tag query failure"
 "203003","TagNameExist","标签已存在","Tag already exists"
 "203004","TagNotExist","标签不存在","Tag does not exist"
+"203005","TagDelErr","标签删除失败","Tag deletion failure"
+"203006","TagUpdateChild","修改子标签失败","The modification of the subtag was unsuccessful. Procedure."

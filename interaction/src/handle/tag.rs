@@ -7,7 +7,7 @@ use application::{
 };
 use axum::Extension;
 use common::{
-    contextx::AppContext,
+    contextx::{AppContext, new_ctx},
     res::{err_to_resp, Responsex},
 };
 use middlewarex::validator::ValidatedJson;
@@ -16,7 +16,9 @@ pub async fn tag_create(
     Extension(ctx): Extension<AppContext>,
     ValidatedJson(cmd): ValidatedJson<TagCreateCmd>,
 ) -> Responsex<i32> {
-    let ctx = Arc::new(ctx);
+    let ctx =new_ctx(ctx);
+    let a=ctx.tx.lock().as_mut().unwrap();
+    let a=ctx.tx.lock().unwrap().unwrap();
     let mut server = new_tag_service(ctx.clone());
     match server.create(&cmd).await {
         Ok(r) => Responsex::ok_with_data(r),

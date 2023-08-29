@@ -1,7 +1,16 @@
 use sea_orm::{DatabaseConnection, DatabaseTransaction};
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    sync::{Arc, Mutex},
+};
 
 use crate::{i18n::Locale, utils};
+
+pub type SharedStateCtx = Arc<Mutex<AppContext>>;
+
+pub fn new_ctx(ctx: AppContext) -> SharedStateCtx {
+    Arc::new(Mutex::new(ctx))
+}
 
 #[derive(Debug)]
 pub struct AppContext {
