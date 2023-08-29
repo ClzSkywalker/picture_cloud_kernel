@@ -7,17 +7,16 @@ use sea_orm::TransactionTrait;
 
 use super::cmd::tag_delete_cmd::{TagDeleteCmd, TAG_DEL_CHILD, TAG_DEL_INHERIT, TAG_DEL_ROOT};
 
-pub struct TagDeleteAbility<'a, TR>
+pub struct TagDeleteAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
     pub tag_repository: TR,
-    pub ctx: &'a AppContext,
-    tag: Option<TagAggregate>,
+    pub tag: Option<TagAggregate>,
 }
 
 #[async_trait::async_trait]
-impl<'a, TR> IAbility for TagDeleteAbility<'a, TR>
+impl<TR> IAbility for TagDeleteAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
@@ -25,34 +24,25 @@ where
     type CMD = TagDeleteCmd;
 
     // 检测名字、父标签是否已存在
-    async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
-        let tag = match __self.tag_repository.by_id(cmd.id).await {
+    async fn check_handler(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<()> {
+        let tag = match __self.tag_repository.by_id(ctx, cmd.id).await {
             Ok(r) => match r {
                 Some(r) => r,
                 None => {
-                    anyhow::bail!(Errorx::new(
-                        self.ctx.locale,
-                        common::i18n::I18nKey::TagNotExist
-                    ))
+                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNotExist))
                 }
             },
             Err(_) => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagQuery
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 
         let res = match cmd.del_type {
-            TAG_DEL_CHILD => self.del_child().await,
-            TAG_DEL_INHERIT => self.del_inherit().await,
-            TAG_DEL_ROOT => self.del_root().await,
+            TAG_DEL_CHILD => self.del_child(ctx).await,
+            TAG_DEL_INHERIT => self.del_inherit(ctx).await,
+            TAG_DEL_ROOT => self.del_root(ctx).await,
             _ => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::ParamError
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::ParamError))
             }
         };
 
@@ -67,30 +57,24 @@ where
 
         Ok(())
     }
-    async fn check_idempotent(&mut self, _: &Self::CMD) -> anyhow::Result<()> {
+    async fn check_idempotent(&mut self, _: &mut AppContext, _: &Self::CMD) -> anyhow::Result<()> {
         Ok(())
     }
-    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
+    async fn execute(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         let tag = cmd.to_ag();
 
-        self.ctx.tx = match __self.ctx.db.begin().await {
+        ctx.tx = match ctx.db.begin().await {
             Ok(r) => Some(r),
             Err(e) => {
                 tracing::error!("e:{}", e);
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagDelErr
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagDelErr))
             }
         };
 
-        match self.tag_repository.update(tag.clone()).await {
+        match self.tag_repository.update(ctx, tag.clone()).await {
             Ok(_) => {}
             Err(_) => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagDelErr
-                ));
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagDelErr));
             }
         };
 
@@ -100,10 +84,7 @@ where
             TAG_DEL_INHERIT => {}
             TAG_DEL_ROOT => {}
             _ => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::ParamError
-                ));
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::ParamError));
             }
         }
 
@@ -111,7 +92,7 @@ where
     }
 }
 
-impl<'a, TR> TagDeleteAbility<'a, TR>
+impl<TR> TagDeleteAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
@@ -122,16 +103,16 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_child(&mut self) -> anyhow::Result<()> {
+    async fn del_child(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
         let ids = match self.tag.clone().unwrap().next {
             Some(r) => r,
             None => return Ok(()),
         };
-        match self.tag_repository.del_by_ids(ids).await {
+        match self.tag_repository.del_by_ids(ctx, ids).await {
             Ok(_) => return Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
+                    ctx.locale,
                     common::i18n::I18nKey::TagUpdateChild
                 ));
             }
@@ -145,7 +126,7 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_inherit(&mut self) -> anyhow::Result<()> {
+    async fn del_inherit(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
         let tag = self.tag.clone().unwrap();
 
         let ids = match self.tag.clone().unwrap().next {
@@ -154,13 +135,13 @@ where
         };
         match self
             .tag_repository
-            .update_parent_by_ids(ids, tag.parent_id)
+            .update_parent_by_ids(ctx, ids, tag.parent_id)
             .await
         {
             Ok(_) => return Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
+                    ctx.locale,
                     common::i18n::I18nKey::TagUpdateChild
                 ));
             }
@@ -174,16 +155,16 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_root(&mut self) -> anyhow::Result<()> {
+    async fn del_root(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
         let ids = match self.tag.clone().unwrap().next {
             Some(r) => r,
             None => return Ok(()),
         };
-        match self.tag_repository.update_parent_by_ids(ids, 0).await {
+        match self.tag_repository.update_parent_by_ids(ctx, ids, 0).await {
             Ok(_) => return Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
+                    ctx.locale,
                     common::i18n::I18nKey::TagUpdateChild
                 ));
             }

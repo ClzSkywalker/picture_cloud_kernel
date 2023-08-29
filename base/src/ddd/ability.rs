@@ -1,3 +1,5 @@
+use common::contextx::AppContext;
+
 use super::command::ICommand;
 
 #[async_trait::async_trait]
@@ -12,7 +14,7 @@ pub trait IAbility: Send + Sync {
     /// param           {*} self
     /// return          {*}
     ///    
-    async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()>;
+    async fn check_handler(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<()>;
 
     ///
     /// Author         : ClzSkywalker
@@ -21,7 +23,11 @@ pub trait IAbility: Send + Sync {
     /// param           {*} self
     /// return          {*}
     ///    
-    async fn check_idempotent(&mut self, cmd: &Self::CMD) -> anyhow::Result<()>;
+    async fn check_idempotent(
+        &mut self,
+        ctx: &mut AppContext,
+        cmd: &Self::CMD,
+    ) -> anyhow::Result<()>;
 
     ///
     /// Author         : ClzSkywalker
@@ -30,21 +36,25 @@ pub trait IAbility: Send + Sync {
     /// param           {*} self
     /// return          {*}
     ///    
-    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R>;
+    async fn execute(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<Self::R>;
 
-    async fn execute_ability(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
-        match self.check_handler(cmd).await {
+    async fn execute_ability(
+        &mut self,
+        ctx: &mut AppContext,
+        cmd: &Self::CMD,
+    ) -> anyhow::Result<Self::R> {
+        match self.check_handler(ctx, cmd).await {
             Ok(_) => {}
             Err(e) => {
                 anyhow::bail!(e)
             }
         };
-        match self.check_idempotent(cmd).await {
+        match self.check_idempotent(ctx, cmd).await {
             Ok(_) => {}
             Err(e) => {
                 anyhow::bail!(e)
             }
         };
-        self.execute(cmd).await
+        self.execute(ctx, cmd).await
     }
 }

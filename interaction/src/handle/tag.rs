@@ -7,32 +7,28 @@ use application::{
 };
 use axum::Extension;
 use common::{
-    contextx::{AppContext, new_ctx},
+    contextx::AppContext,
     res::{err_to_resp, Responsex},
 };
 use middlewarex::validator::ValidatedJson;
 
 pub async fn tag_create(
-    Extension(ctx): Extension<AppContext>,
+    Extension(mut ctx): Extension<AppContext>,
     ValidatedJson(cmd): ValidatedJson<TagCreateCmd>,
 ) -> Responsex<i32> {
-    let ctx =new_ctx(ctx);
-    let a=ctx.tx.lock().as_mut().unwrap();
-    let a=ctx.tx.lock().unwrap().unwrap();
-    let mut server = new_tag_service(ctx.clone());
-    match server.create(&cmd).await {
+    let mut server = new_tag_service();
+    match server.create(&mut ctx, &cmd).await {
         Ok(r) => Responsex::ok_with_data(r),
-        Err(e) => err_to_resp(e, ctx.locale.clone()),
+        Err(e) => err_to_resp(e, ctx.locale),
     }
 }
 
 pub async fn tag_update(
-    Extension(ctx): Extension<AppContext>,
+    Extension(mut ctx): Extension<AppContext>,
     ValidatedJson(cmd): ValidatedJson<TagUpdateCmd>,
 ) -> Responsex<()> {
-    let ctx = Arc::new(ctx);
-    let mut server = new_tag_service(ctx.clone());
-    match server.update(&cmd).await {
+    let mut server = new_tag_service();
+    match server.update(&mut ctx, &cmd).await {
         Ok(r) => Responsex::ok_with_data(r),
         Err(e) => err_to_resp(e, ctx.locale.clone()),
     }

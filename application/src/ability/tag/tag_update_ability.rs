@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use base::ddd::ability::IAbility;
 use common::contextx::AppContext;
 use common::errorx::Errorx;
@@ -13,7 +11,6 @@ where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
     pub tag_repository: TR,
-    pub ctx: Arc<AppContext>,
 }
 
 #[async_trait::async_trait]
@@ -25,21 +22,19 @@ where
     type CMD = TagUpdateCmd;
 
     // 检测名字、父标签是否已存在
-    async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
-        match __self.tag_repository.exist_name(cmd.name.clone()).await {
+    async fn check_handler(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<()> {
+        match __self
+            .tag_repository
+            .exist_name(ctx, cmd.name.clone())
+            .await
+        {
             Ok(r) => {
                 if r {
-                    anyhow::bail!(Errorx::new(
-                        self.ctx.locale,
-                        common::i18n::I18nKey::TagNameExist
-                    ))
+                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNameExist))
                 }
             }
             Err(_) => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagQuery
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 
@@ -47,32 +42,30 @@ where
             return Ok(());
         }
 
-        match __self.tag_repository.exist_parent_id(cmd.parent_id).await {
+        match __self
+            .tag_repository
+            .exist_parent_id(ctx, cmd.parent_id)
+            .await
+        {
             Ok(r) => {
                 if r {
-                    anyhow::bail!(Errorx::new(
-                        self.ctx.locale,
-                        common::i18n::I18nKey::TagNameExist
-                    ))
+                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNameExist))
                 }
             }
             Err(_) => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagQuery
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 
         Ok(())
     }
-    async fn check_idempotent(&mut self, _: &Self::CMD) -> anyhow::Result<()> {
+    async fn check_idempotent(&mut self, _: &mut AppContext, _: &Self::CMD) -> anyhow::Result<()> {
         Ok(())
     }
-    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
+    async fn execute(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         let tag = cmd.to_ag();
 
-        match self.tag_repository.update(tag.clone()).await {
+        match self.tag_repository.update(ctx, tag.clone()).await {
             Ok(r) => r,
             Err(e) => {
                 anyhow::bail!(e);

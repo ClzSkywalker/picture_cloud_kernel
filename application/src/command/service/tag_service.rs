@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use base::ddd::{ability::IAbility, application_service::IApplicationService};
 use common::contextx::AppContext;
 use domain::aggregate::preclude::TagAggregate;
@@ -14,7 +12,6 @@ where
     TCA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
     TUA: IAbility<R = TagAggregate, CMD = TagUpdateCmd>,
 {
-    pub ctx: Arc<AppContext>,
     pub tag_create_ability: TCA,
     pub tag_update_ability: TUA,
 }
@@ -32,8 +29,8 @@ where
     TCA: IAbility<R = TagAggregate, CMD = TagCreateCmd>,
     TUA: IAbility<R = TagAggregate, CMD = TagUpdateCmd>,
 {
-    async fn create(&mut self, cmd: &TagCreateCmd) -> anyhow::Result<i32> {
-        let tag = match __self.tag_create_ability.execute_ability(cmd).await {
+    async fn create(&mut self, ctx: &mut AppContext, cmd: &TagCreateCmd) -> anyhow::Result<i32> {
+        let tag = match __self.tag_create_ability.execute_ability(ctx, cmd).await {
             Ok(r) => r,
             Err(e) => {
                 anyhow::bail!(e)
@@ -42,8 +39,8 @@ where
         Ok(tag.id)
     }
 
-    async fn update(&mut self, cmd: &TagUpdateCmd) -> anyhow::Result<()> {
-        match __self.tag_update_ability.execute_ability(cmd).await {
+    async fn update(&mut self, ctx: &mut AppContext, cmd: &TagUpdateCmd) -> anyhow::Result<()> {
+        match __self.tag_update_ability.execute_ability(ctx, cmd).await {
             Ok(_) => Ok(()),
             Err(e) => {
                 anyhow::bail!(e)
