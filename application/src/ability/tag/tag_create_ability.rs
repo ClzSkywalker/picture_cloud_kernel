@@ -48,8 +48,11 @@ where
             .await
         {
             Ok(r) => {
-                if r {
-                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNameExist))
+                if !r {
+                    anyhow::bail!(Errorx::new(
+                        ctx.locale,
+                        common::i18n::I18nKey::TagParentNotExist
+                    ))
                 }
             }
             Err(_) => {

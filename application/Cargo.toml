@@ -10,8 +10,9 @@ common = { path = "../common" }
 base = { path = "../base" }
 domain = { path = "../domain" }
 infrastructure = { path = "../infrastructure" }
-middlewarex = { path = "../middlewarex" }
+# middlewarex = { path = "../middlewarex" }
 
+tokio = { workspace = true }
 sea-orm = { workspace = true }
 sea-query = { workspace = true }
 axum = { workspace = true }
@@ -23,3 +24,13 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 validator = { workspace = true }
+futures = { workspace = true }
+
+# [features]
+# mock = ["sea-orm/mock"]
+# common_mock = ["common/mock"]
+# infrastructure_mock = ["infrastructure/mock"]
+
+# [[test]]
+# name = "mock"
+# required-features = ["mock", "common_mock", "infrastructure_mock"]

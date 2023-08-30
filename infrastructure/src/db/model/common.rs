@@ -1,24 +1,21 @@
 use std::{sync::OnceLock, time::Duration};
 
-use common::{errorx::Errorx, i18n::I18nKey};
 use migration::{Migrator, MigratorTrait};
-use sea_orm::{ConnectOptions, Database, DbConn};
+use sea_orm::*;
 
 pub static DB_LOCAL: OnceLock<DbConn> = OnceLock::new();
 
-pub async fn init_db(
-    locale: common::i18n::Locale,
-    db_path: &String,
-) -> Result<DbConn, common::errorx::Errorx> {
-    match migration::Migrator::create_db(db_path).await {
-        Ok(_) => {}
-        Err(e) => {
-            tracing::error!("{}", e.to_string());
-            return Err(Errorx::new(locale, I18nKey::DbCreate));
+pub async fn init_db(db_path: &String) -> anyhow::Result<DbConn> {
+    if !db_path.eq("sqlite::memory:") {
+        match migration::Migrator::create_db(db_path).await {
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!("{}", e.to_string());
+                anyhow::bail!(e.to_string())
+            }
         }
     }
 
-    let db_path = "sqlite://".to_string() + db_path;
     let mut opt = ConnectOptions::new(db_path);
     opt.max_connections(1000)
         .min_connections(1)
@@ -30,7 +27,7 @@ pub async fn init_db(
         Ok(r) => r,
         Err(e) => {
             tracing::error!("{}", e.to_string());
-            return Err(Errorx::new(locale, I18nKey::DbInit));
+            anyhow::bail!(e)
         }
     };
 
@@ -40,7 +37,7 @@ pub async fn init_db(
         Ok(_) => {}
         Err(e) => {
             tracing::error!("{}", e.to_string());
-            return Err(Errorx::new(locale, I18nKey::DbUp));
+            anyhow::bail!(e)
         }
     };
 

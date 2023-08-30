@@ -47,13 +47,28 @@ impl Display for AppContext {
 
 impl Clone for AppContext {
     fn clone(&self) -> Self {
-        Self {
-            db: self.db.clone(),
-            tx: None,
-            flow_id: self.flow_id.clone(),
-            uid: self.uid.clone(),
-            tid: self.tid.clone(),
-            locale: self.locale.clone(),
+        #[cfg(not(feature = "mock"))]
+        {
+            Self {
+                db: self.db.clone(),
+                tx: None,
+                flow_id: self.flow_id.clone(),
+                uid: self.uid.clone(),
+                tid: self.tid.clone(),
+                locale: self.locale.clone(),
+            }
+        }
+        #[cfg(feature = "mock")]
+        {
+            Self {
+                db: DatabaseConnection::Disconnected,
+                tx: None,
+                flow_id: self.flow_id.clone(),
+                uid: self.uid.clone(),
+                tid: self.tid.clone(),
+                locale: self.locale.clone(),
+            }
         }
     }
 }
+

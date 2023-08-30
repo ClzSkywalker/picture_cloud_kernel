@@ -14,7 +14,7 @@ pub async fn server_api(config: AppConfig) {
     tracing::info!("api server srart:{}:{}", LOCAL_HOSE, config.port.clone());
     tracing::info!("port:{} \nworkspace:{} \n", config.port, config.workspace,);
 
-    let db = match init_db(common::i18n::Locale::En, &config.db_local_path()).await {
+    let db = match init_db(&config.db_local_path()).await {
         Ok(r) => r,
         Err(e) => {
             panic!("{}", e)

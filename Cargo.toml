@@ -8,6 +8,7 @@
 # [dependencies]
 
 [workspace]
+resolver = "2"
 members = [
     "migration",
     "macrox",
@@ -48,6 +49,7 @@ sea-query = { version = "0", features = ["derive", "attr"] }
 # async
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1"
+futures = { version = "0.3" }
 
 chrono = "0.4"
 anyhow = "1"
@@ -55,7 +57,7 @@ anyhow = "1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 # csv处理
-csv = "1.2"                                        
+csv = "1.2"
 
 # uuid = {version="1",features = [
 #     "v4",                # Lets you generate random UUIDs

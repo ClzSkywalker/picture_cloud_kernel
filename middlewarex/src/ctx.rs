@@ -33,8 +33,8 @@ pub async fn ctx_fn_mid(req: Request<Body>, next: Next<Body>) -> impl IntoRespon
 
     let locale = Locale::from(locale.as_str());
 
-    let db = DB_LOCAL.get().unwrap();
-    let ctx = AppContext::new(db.clone(), locale);
+    let db = DB_LOCAL.get().unwrap().clone();
+    let ctx = AppContext::new(db, locale);
 
     let (parts, req_body) = req.into_parts();
 

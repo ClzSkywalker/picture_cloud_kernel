@@ -30,8 +30,9 @@ impl AppConfig {
     }
 
     pub fn db_local_path(&self) -> String {
-        let mut path = String::from(self.database.clone());
-        path.push_str("local_db");
+        let mut path = String::from("sqlite://");
+        path.push_str(self.database.clone().as_str());
+        path.push_str("local");
         path
     }
 }

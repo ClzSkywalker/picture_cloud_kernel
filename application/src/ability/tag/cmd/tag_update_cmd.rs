@@ -7,8 +7,11 @@ use validator::Validate;
 #[derive(Debug, Clone, Deserialize, Validate)]
 pub struct TagUpdateCmd {
     pub id: i32,
+    #[validate(length(min = 1, max = 10))]
     pub name: String,
+    #[validate(range(min = 0))]
     pub parent_id: i32,
+    #[validate(range(min = 0))]
     pub sort: i32,
 }
 
