@@ -6,14 +6,8 @@ pub fn deserialize(
     prevs: Option<Vec<TagInfoModel>>,
     nexts: Option<Vec<TagInfoModel>>,
 ) -> TagAggregate {
-    let prevs: Option<Vec<i32>> = match prevs {
-        Some(r) => Some(r.iter().map(|item| item.id).collect()),
-        None => None,
-    };
-    let nexts: Option<Vec<i32>> = match nexts {
-        Some(r) => Some(r.iter().map(|item| item.id).collect()),
-        None => None,
-    };
+    let prevs: Option<Vec<i32>> = prevs.map(|item| item.iter().map(|item| item.id).collect());
+    let nexts: Option<Vec<i32>> = nexts.map(|item| item.iter().map(|item| item.id).collect());
     TagAggregate {
         id: t.id,
         name: t.name,

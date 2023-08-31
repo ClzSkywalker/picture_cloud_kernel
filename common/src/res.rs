@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
+use super::{
+    errorx::Errorx,
+    i18n::{I18nKey, Locale},
+};
 use axum::{
     body::{self, Full},
     http::{header, HeaderValue, StatusCode},
     response::{IntoResponse, Response},
-};
-use super::{
-    errorx::Errorx,
-    i18n::{I18nKey, Locale},
 };
 use serde::Serialize;
 
@@ -80,8 +80,8 @@ impl<T: Serialize> Responsex<T> {
     pub fn ok_with_msg(msg: String) -> Self {
         Self {
             code: I18nKey::Ok.id(),
-            msg: msg,
             data: None,
+            msg,
         }
     }
 

@@ -1,3 +1,3 @@
 pub mod ddd;
 pub mod event;
-pub mod json;
+pub mod jsonx;

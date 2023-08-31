@@ -109,7 +109,7 @@ where
             None => return Ok(()),
         };
         match self.tag_repository.del_by_ids(ctx, ids).await {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
                     ctx.locale,
@@ -138,7 +138,7 @@ where
             .update_parent_by_ids(ctx, ids, tag.parent_id)
             .await
         {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
                     ctx.locale,
@@ -161,7 +161,7 @@ where
             None => return Ok(()),
         };
         match self.tag_repository.update_parent_by_ids(ctx, ids, 0).await {
-            Ok(_) => return Ok(()),
+            Ok(_) => Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
                     ctx.locale,

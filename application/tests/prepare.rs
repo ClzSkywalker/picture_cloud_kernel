@@ -29,7 +29,7 @@ pub async fn prepare() -> AppContext {
 
 async fn init_data(db: &DbConn) -> anyhow::Result<()> {
     let mut tag_entity_list: Vec<TagInfoModel> = Vec::with_capacity(6);
-    for item in 1..7 {
+    for item in 1..=6 {
         let mut entity = TagInfoModel {
             id: item,
             created_at: Some(Local::now()),

@@ -5,7 +5,6 @@ mod tests {
         tag::cmd::tag_delete_cmd::{TagDeleteCmd, TAG_DEL_CHILD},
     };
     use base::ddd::{ability::IAbility, repository::IRepository};
-    use common::i18n::I18nKey;
     use infrastructure::db::repository::new_tag_repository;
 
     use crate::{async_method, prepare};
@@ -36,7 +35,7 @@ mod tests {
             let repository = new_tag_repository();
             match repository.by_id(&mut ctx, 6).await {
                 Ok(r) => match r {
-                    Some(r) => {
+                    Some(_) => {
                         panic!()
                     }
                     None => {}
@@ -73,7 +72,7 @@ mod tests {
             let repository = new_tag_repository();
             match repository.by_id(&mut ctx, 6).await {
                 Ok(r) => match r {
-                    Some(r) => {
+                    Some(_) => {
                         panic!()
                     }
                     None => {}

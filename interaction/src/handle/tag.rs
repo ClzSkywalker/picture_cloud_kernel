@@ -30,7 +30,7 @@ pub async fn tag_update(
     let mut server = new_tag_service();
     match server.update(&mut ctx, &cmd).await {
         Ok(r) => Responsex::ok_with_data(r),
-        Err(e) => err_to_resp(e, ctx.locale.clone()),
+        Err(e) => err_to_resp(e, ctx.locale),
     }
 }
 
@@ -39,6 +39,6 @@ pub async fn tag_find(Extension(ctx): Extension<AppContext>) -> Responsex<Vec<Ta
     let mut s = new_tag_cqrs_service(ctx.clone());
     match s.find().await {
         Ok(r) => Responsex::ok_with_data(r),
-        Err(e) => err_to_resp(e, ctx.locale.clone()),
+        Err(e) => err_to_resp(e, ctx.locale),
     }
 }

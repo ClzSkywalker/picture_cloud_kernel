@@ -37,7 +37,7 @@ impl ActiveModelBehavior for ActiveModel {}
 impl Model {
     pub fn into_active_base(&self) -> ActiveModel {
         ActiveModel {
-            id: Set(self.id.clone()),
+            id: Set(self.id),
             created_at: NotSet,
             updated_at: NotSet,
             deleted_at: NotSet,

@@ -16,13 +16,13 @@ pub struct AppConfig {
 
 impl AppConfig {
     pub fn init(&mut self) {
-        let mut db = String::from(self.workspace.clone());
+        let mut db = self.workspace.clone();
         db.push(MAIN_SEPARATOR);
         db.push_str("database");
         db.push(MAIN_SEPARATOR);
         self.database = db;
 
-        let mut log = String::from(self.workspace.clone());
+        let mut log = self.workspace.clone();
         log.push(MAIN_SEPARATOR);
         log.push_str("logs");
         log.push(MAIN_SEPARATOR);
@@ -40,18 +40,13 @@ impl AppConfig {
 // pub static  <AppConfig>
 pub static APP_CONFIG: OnceLock<AppConfig> = OnceLock::new();
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Default)]
 #[serde(untagged)]
 pub enum ServerMode {
     Debug,
     Test,
+    #[default]
     Release,
-}
-
-impl Default for ServerMode {
-    fn default() -> Self {
-        ServerMode::Release
-    }
 }
 
 impl From<&str> for ServerMode {

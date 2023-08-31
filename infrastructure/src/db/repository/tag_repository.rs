@@ -126,7 +126,7 @@ impl IRepository for TagRepository {
 
     async fn delete(&self, ctx: &mut AppContext, id: Self::ID) -> anyhow::Result<()> {
         let active = TagInfoEntity::update(TagInfoActive {
-            id: Set(id.clone()),
+            id: Set(id),
             deleted_at: Set(Some(Local::now())),
             ..Default::default()
         })
@@ -165,7 +165,7 @@ impl IRepository for TagRepository {
     }
 
     async fn by_id(&self, ctx: &mut AppContext, id: Self::ID) -> anyhow::Result<Option<Self::AG>> {
-        let active = TagInfoEntity::find_by_id(id.clone())
+        let active = TagInfoEntity::find_by_id(id)
             .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()))
             .limit(1);
         let res = match &ctx.tx {

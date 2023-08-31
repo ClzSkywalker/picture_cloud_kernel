@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 
-use super::event::{BaseDomainEvent, IDomainType};
+use super::eventx::{BaseDomainEvent, IDomainType};
 
 /// 领域事件仓储，保存已发生的领域事件，用于事件溯源
 #[async_trait]

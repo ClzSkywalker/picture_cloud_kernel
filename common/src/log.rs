@@ -13,7 +13,7 @@ struct MyTimeFormat;
 impl FormatTime for MyTimeFormat {
     fn format_time(&self, w: &mut tracing_subscriber::fmt::format::Writer<'_>) -> std::fmt::Result {
         let now = Local::now().format("%Y-%m-%d %H:%M:%S");
-        write!(w, "{}", now.to_string())
+        write!(w, "{}", now)
     }
 }
 

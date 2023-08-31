@@ -30,7 +30,7 @@ impl AppContext {
             flow_id: utils::generate_ulid(),
             uid: "".to_string(),
             tid: "".to_string(),
-            locale: locale,
+            locale,
         }
     }
 }
@@ -55,7 +55,7 @@ impl Clone for AppContext {
                 flow_id: self.flow_id.clone(),
                 uid: self.uid.clone(),
                 tid: self.tid.clone(),
-                locale: self.locale.clone(),
+                locale: self.locale,
             }
         }
         #[cfg(feature = "mock")]
@@ -71,4 +71,3 @@ impl Clone for AppContext {
         }
     }
 }
-

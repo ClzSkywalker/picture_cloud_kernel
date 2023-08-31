@@ -1,4 +1,4 @@
-use super::event::{BaseDomainEvent, IDomainType};
+use super::eventx::{BaseDomainEvent, IDomainType};
 
 pub trait IDomainEventPublisher {
     type Data;

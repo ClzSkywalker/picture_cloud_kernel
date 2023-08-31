@@ -20,9 +20,7 @@ impl syn::parse::Parse for Option {
         let params = input.parse::<LitStr>().unwrap();
         let params_value = params.value();
 
-        dbg!(params_value.clone());
-
-        let params_vec: Vec<&str> = params_value.split(",").collect();
+        let params_vec: Vec<&str> = params_value.split(',').collect();
 
         assert_eq!(
             params_vec.len(),
@@ -163,7 +161,7 @@ fn check_json_data(data_list: &Vec<EnumDefinition>) {
 /// param           {*} str_list
 /// return          {*}
 ///
-fn generate_enum_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
+fn generate_enum_case(str_list: &[EnumDefinition]) -> Vec<TokenStream> {
     let enum_case = str_list
         .iter()
         .map(|variant| {
@@ -175,7 +173,7 @@ fn generate_enum_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
                 .captures_iter(&variant.en)
                 .map(|item| item.get(1).unwrap().as_str())
                 .collect();
-            if args.len() == 0 {
+            if args.is_empty() {
                 return quote! {#item,};
             }
 
@@ -200,7 +198,7 @@ fn generate_enum_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
     enum_case
 }
 
-fn generate_id_func_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
+fn generate_id_func_case(str_list: &[EnumDefinition]) -> Vec<TokenStream> {
     let enum_case = str_list
         .iter()
         .map(|variant| {
@@ -214,7 +212,7 @@ fn generate_id_func_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
                 .collect();
 
             let id = variant.id;
-            if args.len() == 0 {
+            if args.is_empty() {
                 return quote! {I18nKey::#item=>#id,};
             }
 
@@ -246,7 +244,7 @@ fn generate_id_func_case(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
 /// param           {*} str_list
 /// return          {*}
 ///
-fn generate_func(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
+fn generate_func(str_list: &[EnumDefinition]) -> Vec<TokenStream> {
     str_list
         .iter()
         .map(|variant| {
@@ -256,7 +254,7 @@ fn generate_func(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
             // 正则匹配参数
             let re = Regex::new(r"%\{(\w+)\}").unwrap();
             let marches: Vec<_> = re.captures_iter(&variant.en).collect();
-            if marches.len() == 0 {
+            if marches.is_empty() {
                 return quote! {
                     I18nKey::#enum_name => match locale {
                         Locale::En => {
@@ -286,7 +284,7 @@ fn generate_func(str_list: &Vec<EnumDefinition>) -> Vec<TokenStream> {
                 replace_indentity.push('}');
 
                 let arg_name = syn::Ident::new(
-                    &args_info.get(index).unwrap(),
+                    args_info.get(index).unwrap(),
                     proc_macro2::Span::call_site(),
                 );
 

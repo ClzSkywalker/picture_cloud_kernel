@@ -22,7 +22,7 @@ pub async fn server_api(config: AppConfig) {
     };
     DB_LOCAL.get_or_init(|| db);
 
-    let router = router::router::create_router();
+    let router = router::create_router();
     let addr = SocketAddr::from_str(&format!("{}:{}", LOCAL_HOSE, config.port)).unwrap();
     Server::bind(&addr)
         .serve(router.into_make_service())
