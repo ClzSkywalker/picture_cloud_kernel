@@ -11,6 +11,7 @@ path = "./src/lib.rs"
 [dependencies]
 macrox = { path = "../macrox" }
 
+tokio = { workspace = true }
 tracing = { workspace = true, features = ["default"] }
 # tracing-core = { version = "0.1",features=["default"]}
 # tracing-core = {workspace=true,

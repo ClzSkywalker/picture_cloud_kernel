@@ -10,24 +10,34 @@ use self::tag::{
     tag_update_ability::TagUpdateAbility,
 };
 use base::ddd::ability::IAbility;
+use common::contextx::SharedStateCtx;
 use domain::aggregate::preclude::*;
 use infrastructure::db::repository::new_tag_repository;
 
-pub fn new_tag_create_ability() -> impl IAbility<R = TagAggregate, CMD = TagCreateCmd> {
+pub fn new_tag_create_ability(
+    ctx: SharedStateCtx,
+) -> impl IAbility<R = TagAggregate, CMD = TagCreateCmd> {
     TagCreateAbility {
-        tag_repository: new_tag_repository(),
+        ctx: ctx.clone(),
+        tag_repository: new_tag_repository(ctx.clone()),
     }
 }
 
-pub fn new_tag_delete_ability() -> impl IAbility<R = TagAggregate, CMD = TagDeleteCmd> {
+pub fn new_tag_delete_ability(
+    ctx: SharedStateCtx,
+) -> impl IAbility<R = TagAggregate, CMD = TagDeleteCmd> {
     TagDeleteAbility {
-        tag_repository: new_tag_repository(),
+        ctx: ctx.clone(),
+        tag_repository: new_tag_repository(ctx.clone()),
         tag: None,
     }
 }
 
-pub fn new_tag_update_ability() -> impl IAbility<R = TagAggregate, CMD = TagUpdateCmd> {
+pub fn new_tag_update_ability(
+    ctx: SharedStateCtx,
+) -> impl IAbility<R = TagAggregate, CMD = TagUpdateCmd> {
     TagUpdateAbility {
-        tag_repository: new_tag_repository(),
+        ctx: ctx.clone(),
+        tag_repository: new_tag_repository(ctx.clone()),
     }
 }

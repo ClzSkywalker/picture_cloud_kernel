@@ -1,8 +1,6 @@
 use sea_orm::{DatabaseConnection, DatabaseTransaction};
-use std::{
-    fmt::Display,
-    sync::{Arc, Mutex},
-};
+use std::{fmt::Display, sync::Arc};
+use tokio::sync::Mutex;
 
 use crate::{i18n::Locale, utils};
 
@@ -15,7 +13,7 @@ pub fn new_ctx(ctx: AppContext) -> SharedStateCtx {
 #[derive(Debug)]
 pub struct AppContext {
     pub db: DatabaseConnection,
-    pub tx: Option<DatabaseTransaction>,
+    pub tx: Vec<DatabaseTransaction>,
     pub flow_id: String,
     pub uid: String,
     pub tid: String,
@@ -26,12 +24,25 @@ impl AppContext {
     pub fn new(db: DatabaseConnection, locale: Locale) -> Self {
         Self {
             db,
-            tx: None,
+            tx: Vec::new(),
             flow_id: utils::generate_ulid(),
             uid: "".to_string(),
             tid: "".to_string(),
             locale,
         }
+    }
+
+    pub fn get_tx(&self) -> Option<&DatabaseTransaction> {
+        if self.tx.is_empty() {
+            return None;
+        }
+        Some(&self.tx.last().unwrap())
+    }
+}
+
+impl Into<SharedStateCtx> for AppContext {
+    fn into(self) -> SharedStateCtx {
+        SharedStateCtx::new(Mutex::new(self))
     }
 }
 
@@ -51,7 +62,7 @@ impl Clone for AppContext {
         {
             Self {
                 db: self.db.clone(),
-                tx: None,
+                tx: Vec::new(),
                 flow_id: self.flow_id.clone(),
                 uid: self.uid.clone(),
                 tid: self.tid.clone(),

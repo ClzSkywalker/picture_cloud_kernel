@@ -1,8 +1,9 @@
 use chrono::Local;
-use common::contextx::AppContext;
+use common::contextx::{AppContext, SharedStateCtx};
 use infrastructure::db::model::preclude::*;
 use sea_orm::{ActiveValue::NotSet, DbConn, EntityTrait};
 use std::future::Future;
+use tokio::sync::Mutex;
 
 pub mod ability;
 
@@ -13,7 +14,7 @@ pub fn async_method<F: Future<Output = ()>>(callback: F) {
         .unwrap()
         .block_on(async { callback.await })
 }
-pub async fn prepare() -> AppContext {
+pub async fn prepare() -> SharedStateCtx {
     let db = match infrastructure::db::model::common::init_db(&"sqlite::memory:".to_string()).await
     {
         Ok(r) => r,
@@ -24,7 +25,7 @@ pub async fn prepare() -> AppContext {
 
     init_data(&db).await.unwrap();
 
-    AppContext::new(db, common::i18n::Locale::En)
+    SharedStateCtx::new(Mutex::new(AppContext::new(db, common::i18n::Locale::En)))
 }
 
 async fn init_data(db: &DbConn) -> anyhow::Result<()> {

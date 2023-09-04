@@ -1,24 +1,21 @@
-use common::{contextx::AppContext, errorx::Errorx};
-use std::sync::Arc;
+use common::{contextx::SharedStateCtx, errorx::Errorx};
 
 use crate::query::{
     model::tag::dto::TagInfoItem, repository::tag_cqrs_repository::TagCqrsRepository,
 };
 
 pub struct TagCqrsService {
-    pub ctx: Arc<AppContext>,
+    pub ctx: SharedStateCtx,
     pub tag_cqrs_respository: TagCqrsRepository,
 }
 
 impl TagCqrsService {
     pub async fn find(&mut self) -> anyhow::Result<Vec<TagInfoItem>> {
+        let ctx = self.ctx.lock().await;
         let tags = match self.tag_cqrs_respository.find().await {
             Ok(r) => r,
             Err(_) => {
-                anyhow::bail!(Errorx::new(
-                    self.ctx.locale,
-                    common::i18n::I18nKey::TagQuery
-                ))
+                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 

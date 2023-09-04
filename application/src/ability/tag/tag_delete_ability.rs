@@ -1,5 +1,5 @@
 use base::ddd::ability::IAbility;
-use common::contextx::AppContext;
+use common::contextx::SharedStateCtx;
 use common::errorx::Errorx;
 use domain::aggregate::preclude::*;
 use domain::aggregate::tag::repository::itag_repository::ITagRespository;
@@ -11,6 +11,7 @@ pub struct TagDeleteAbility<TR>
 where
     TR: ITagRespository<AG = TagAggregate, ID = i32>,
 {
+    pub ctx: SharedStateCtx,
     pub tag_repository: TR,
     pub tag: Option<TagAggregate>,
 }
@@ -24,25 +25,35 @@ where
     type CMD = TagDeleteCmd;
 
     // 检测名字、父标签是否已存在
-    async fn check_handler(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<()> {
-        let tag = match __self.tag_repository.by_id(ctx, cmd.id).await {
+    async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
+        // let ctx = self.ctx.lock().await;
+        let tag = match self.tag_repository.by_id(cmd.id).await {
             Ok(r) => match r {
                 Some(r) => r,
                 None => {
-                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNotExist))
+                    anyhow::bail!(Errorx::new(
+                        self.ctx.lock().await.locale,
+                        common::i18n::I18nKey::TagNotExist
+                    ))
                 }
             },
             Err(_) => {
-                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
+                anyhow::bail!(Errorx::new(
+                    self.ctx.lock().await.locale,
+                    common::i18n::I18nKey::TagQuery
+                ))
             }
         };
 
         let res = match cmd.del_type {
-            TAG_DEL_CHILD => self.del_child(ctx).await,
-            TAG_DEL_INHERIT => self.del_inherit(ctx).await,
-            TAG_DEL_ROOT => self.del_root(ctx).await,
+            TAG_DEL_CHILD => self.del_child().await,
+            TAG_DEL_INHERIT => self.del_inherit().await,
+            TAG_DEL_ROOT => self.del_root().await,
             _ => {
-                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::ParamError))
+                anyhow::bail!(Errorx::new(
+                    self.ctx.lock().await.locale,
+                    common::i18n::I18nKey::ParamError
+                ))
             }
         };
 
@@ -57,21 +68,23 @@ where
 
         Ok(())
     }
-    async fn check_idempotent(&mut self, _: &mut AppContext, _: &Self::CMD) -> anyhow::Result<()> {
+    async fn check_idempotent(&mut self, _: &Self::CMD) -> anyhow::Result<()> {
         Ok(())
     }
-    async fn execute(&mut self, ctx: &mut AppContext, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
+    async fn execute(&mut self, cmd: &Self::CMD) -> anyhow::Result<Self::R> {
         let tag = cmd.to_ag();
+        let mut ctx = self.ctx.lock().await;
 
-        ctx.tx = match ctx.db.begin().await {
-            Ok(r) => Some(r),
+        let tx = match ctx.db.begin().await {
+            Ok(r) => r,
             Err(e) => {
                 tracing::error!("e:{}", e);
                 anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagDelErr))
             }
         };
+        ctx.tx.push(tx);
 
-        match self.tag_repository.update(ctx, tag.clone()).await {
+        match self.tag_repository.update(tag.clone()).await {
             Ok(_) => {}
             Err(_) => {
                 anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagDelErr));
@@ -103,12 +116,13 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_child(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
+    async fn del_child(&mut self) -> anyhow::Result<()> {
+        let ctx = self.ctx.lock().await;
         let ids = match self.tag.clone().unwrap().next {
             Some(r) => r,
             None => return Ok(()),
         };
-        match self.tag_repository.del_by_ids(ctx, ids).await {
+        match self.tag_repository.del_by_ids(ids).await {
             Ok(_) => Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(
@@ -126,7 +140,8 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_inherit(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
+    async fn del_inherit(&mut self) -> anyhow::Result<()> {
+        let ctx = self.ctx.lock().await;
         let tag = self.tag.clone().unwrap();
 
         let ids = match self.tag.clone().unwrap().next {
@@ -135,7 +150,7 @@ where
         };
         match self
             .tag_repository
-            .update_parent_by_ids(ctx, ids, tag.parent_id)
+            .update_parent_by_ids(ids, tag.parent_id)
             .await
         {
             Ok(_) => Ok(()),
@@ -155,12 +170,13 @@ where
     /// param           {*} mut
     /// return          {*}
     ///    
-    async fn del_root(&mut self, ctx: &mut AppContext) -> anyhow::Result<()> {
+    async fn del_root(&mut self) -> anyhow::Result<()> {
+        let ctx = self.ctx.lock().await;
         let ids = match self.tag.clone().unwrap().next {
             Some(r) => r,
             None => return Ok(()),
         };
-        match self.tag_repository.update_parent_by_ids(ctx, ids, 0).await {
+        match self.tag_repository.update_parent_by_ids(ids, 0).await {
             Ok(_) => Ok(()),
             Err(_) => {
                 anyhow::bail!(Errorx::new(

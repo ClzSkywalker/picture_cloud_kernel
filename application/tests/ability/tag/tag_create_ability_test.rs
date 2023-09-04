@@ -10,16 +10,16 @@ mod tests {
     #[test]
     pub fn success() {
         async_method(async {
-            let mut ctx = prepare().await;
+            let ctx = prepare().await;
 
-            let mut ability = new_tag_create_ability();
+            let mut ability = new_tag_create_ability(ctx);
 
             let cmd1 = TagCreateCmd {
                 name: String::from("success1"),
                 parent_id: 0,
                 sort: 7,
             };
-            match ability.execute_ability(&mut ctx, &cmd1).await {
+            match ability.execute_ability(&cmd1).await {
                 Ok(r) => {
                     assert!(r.id > 0, "插入失败");
                     assert_eq!(r.sort, 7);
@@ -35,21 +35,24 @@ mod tests {
     #[test]
     fn create_name_repeat() {
         async_method(async {
-            let mut ctx = prepare().await;
+            let ctx = prepare().await;
 
-            let mut ability = new_tag_create_ability();
+            let mut ability = new_tag_create_ability(ctx.clone());
 
             let cmd1 = TagCreateCmd {
                 name: String::from("t1"),
                 parent_id: 0,
                 sort: 7,
             };
-            match ability.execute_ability(&mut ctx, &cmd1).await {
+            match ability.execute_ability(&cmd1).await {
                 Ok(r) => {
                     assert_eq!(r.id, 0);
                 }
                 Err(e) => {
-                    assert_eq!(e.to_string(), I18nKey::TagNameExist.trans(ctx.locale));
+                    assert_eq!(
+                        e.to_string(),
+                        I18nKey::TagNameExist.trans(ctx.lock().await.locale)
+                    );
                 }
             }
         })
@@ -59,9 +62,9 @@ mod tests {
     #[test]
     fn parent_exist() {
         async_method(async {
-            let mut ctx = prepare().await;
+            let ctx = prepare().await;
 
-            let mut ability = new_tag_create_ability();
+            let mut ability = new_tag_create_ability(ctx.clone());
 
             // 成功
             let cmd1 = TagCreateCmd {
@@ -69,7 +72,7 @@ mod tests {
                 parent_id: 1,
                 sort: 7,
             };
-            match ability.execute_ability(&mut ctx, &cmd1).await {
+            match ability.execute_ability(&cmd1).await {
                 Ok(r) => {
                     assert!(r.id > 0);
                 }
@@ -84,12 +87,15 @@ mod tests {
                 parent_id: 999,
                 sort: 7,
             };
-            match ability.execute_ability(&mut ctx, &cmd2).await {
+            match ability.execute_ability(&cmd2).await {
                 Ok(r) => {
                     assert!(r.id == 0);
                 }
                 Err(e) => {
-                    assert_eq!(e.to_string(), I18nKey::TagParentNotExist.trans(ctx.locale));
+                    assert_eq!(
+                        e.to_string(),
+                        I18nKey::TagParentNotExist.trans(ctx.lock().await.locale)
+                    );
                 }
             };
         })
