@@ -13,7 +13,7 @@ mod tests {
     use crate::prepare;
 
     // success
-    // 正常情况
+    // 无父标签
     #[tokio::test]
     pub async fn no_parent_id() {
         let ctx = prepare().await;
@@ -59,7 +59,7 @@ mod tests {
 
     // 跟已删除的tag名字重复
     #[tokio::test]
-    pub async fn su_del_name_repeat() {
+    pub async fn del_name_repeat() {
         let ctx = prepare().await;
 
         let mut ability = new_tag_create_ability(ctx.clone());
@@ -135,7 +135,7 @@ mod tests {
     }
 
     // failure
-    // 判断父标签是否存在
+    // 父标签id不存在
     #[tokio::test]
     pub async fn parent_exist() {
         let ctx = prepare().await;

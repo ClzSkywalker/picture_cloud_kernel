@@ -1,3 +1,4 @@
+pub mod classify;
 pub mod share;
 pub mod tag;
 
