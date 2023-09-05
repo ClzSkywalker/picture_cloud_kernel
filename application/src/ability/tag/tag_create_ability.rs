@@ -25,15 +25,14 @@ where
 
     // 检测名字、父标签是否已存在
     async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
-        let ctx = self.ctx.lock().await;
         match __self.tag_repository.exist_name(cmd.name.clone()).await {
             Ok(r) => {
                 if r {
-                    anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagNameExist))
+                    anyhow::bail!(Errorx::new(self.ctx.read().await.locale, common::i18n::I18nKey::TagNameExist))
                 }
             }
             Err(_) => {
-                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
+                anyhow::bail!(Errorx::new(self.ctx.read().await.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 
@@ -45,13 +44,13 @@ where
             Ok(r) => {
                 if !r {
                     anyhow::bail!(Errorx::new(
-                        ctx.locale,
+                        self.ctx.read().await.locale,
                         common::i18n::I18nKey::TagParentNotExist
                     ))
                 }
             }
             Err(_) => {
-                anyhow::bail!(Errorx::new(ctx.locale, common::i18n::I18nKey::TagQuery))
+                anyhow::bail!(Errorx::new(self.ctx.read().await.locale, common::i18n::I18nKey::TagQuery))
             }
         };
 

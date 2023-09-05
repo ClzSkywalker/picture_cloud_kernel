@@ -3,11 +3,27 @@ use domain::aggregate::preclude::*;
 
 pub fn deserialize(
     t: TagInfoModel,
-    prevs: Option<Vec<TagInfoModel>>,
-    nexts: Option<Vec<TagInfoModel>>,
+    prevs: Vec<TagInfoModel>,
+    nexts: Vec<TagInfoModel>,
 ) -> TagAggregate {
-    let prevs: Option<Vec<i32>> = prevs.map(|item| item.iter().map(|item| item.id).collect());
-    let nexts: Option<Vec<i32>> = nexts.map(|item| item.iter().map(|item| item.id).collect());
+    let prevs: Vec<i32> = prevs
+        .iter()
+        .filter_map(|item| {
+            if item.id == t.id {
+                return None;
+            }
+            Some(item.id)
+        })
+        .collect();
+    let nexts: Vec<i32> = nexts
+        .iter()
+        .filter_map(|item| {
+            if item.id == t.id {
+                return None;
+            }
+            Some(item.id)
+        })
+        .collect();
     TagAggregate {
         id: t.id,
         name: t.name,

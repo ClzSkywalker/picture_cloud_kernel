@@ -2,18 +2,17 @@ use chrono::Local;
 use common::contextx::{AppContext, SharedStateCtx};
 use infrastructure::db::model::preclude::*;
 use sea_orm::{ActiveValue::NotSet, DbConn, EntityTrait};
-use std::future::Future;
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 pub mod ability;
 
-pub fn async_method<F: Future<Output = ()>>(callback: F) {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(async { callback.await })
-}
+// pub fn async_method<F: Future<Output = ()>>(callback: F) {
+//     tokio::runtime::Builder::new_current_thread()
+//         .enable_all()
+//         .build()
+//         .unwrap()
+//         .block_on(async { callback.await })
+// }
 pub async fn prepare() -> SharedStateCtx {
     let db = match infrastructure::db::model::common::init_db(&"sqlite::memory:".to_string()).await
     {
@@ -23,12 +22,12 @@ pub async fn prepare() -> SharedStateCtx {
         }
     };
 
-    init_data(&db).await.unwrap();
+    init_tag_data(&db).await.unwrap();
 
-    SharedStateCtx::new(Mutex::new(AppContext::new(db, common::i18n::Locale::En)))
+    SharedStateCtx::new(RwLock::new(AppContext::new(db, common::i18n::Locale::En)))
 }
 
-async fn init_data(db: &DbConn) -> anyhow::Result<()> {
+async fn init_tag_data(db: &DbConn) -> anyhow::Result<()> {
     let mut tag_entity_list: Vec<TagInfoModel> = Vec::with_capacity(6);
     for item in 1..=6 {
         let mut entity = TagInfoModel {
@@ -45,7 +44,7 @@ async fn init_data(db: &DbConn) -> anyhow::Result<()> {
             3 => entity.parent_id = 1,
             4 => entity.parent_id = 3,
             5 => entity.parent_id = 2,
-            6 => entity.deleted_at = Some(Local::now()),
+            7 => entity.deleted_at = Some(Local::now()),
             _ => {}
         };
 

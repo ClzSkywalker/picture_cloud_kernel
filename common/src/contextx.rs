@@ -1,13 +1,13 @@
-use sea_orm::{DatabaseConnection, DatabaseTransaction};
+use sea_orm::{DatabaseConnection, DatabaseTransaction, TransactionTrait};
 use std::{fmt::Display, sync::Arc};
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 use crate::{i18n::Locale, utils};
 
-pub type SharedStateCtx = Arc<Mutex<AppContext>>;
+pub type SharedStateCtx = Arc<RwLock<AppContext>>;
 
 pub fn new_ctx(ctx: AppContext) -> SharedStateCtx {
-    Arc::new(Mutex::new(ctx))
+    Arc::new(RwLock::new(ctx))
 }
 
 #[derive(Debug)]
@@ -32,6 +32,40 @@ impl AppContext {
         }
     }
 
+    pub async fn begin(&mut self) -> anyhow::Result<()> {
+        let tx = match self.db.begin().await {
+            Ok(r) => r,
+            Err(e) => {
+                tracing::error!("e:{}", e);
+                anyhow::bail!(e)
+            }
+        };
+
+        self.tx.push(tx);
+
+        Ok(())
+    }
+
+    pub async fn commit(&mut self) -> anyhow::Result<()> {
+        let tx = match self.tx.pop() {
+            Some(r) => r,
+            None => {
+                tracing::error!("e:{}", "tx is empty");
+                anyhow::bail!("tx is empty")
+            }
+        };
+
+        match tx.commit().await {
+            Ok(_) => {}
+            Err(e) => {
+                tracing::error!("e:{}", e);
+                anyhow::bail!(e)
+            }
+        };
+
+        Ok(())
+    }
+
     pub fn get_tx(&self) -> Option<&DatabaseTransaction> {
         if self.tx.is_empty() {
             return None;
@@ -42,7 +76,7 @@ impl AppContext {
 
 impl Into<SharedStateCtx> for AppContext {
     fn into(self) -> SharedStateCtx {
-        SharedStateCtx::new(Mutex::new(self))
+        SharedStateCtx::new(RwLock::new(self))
     }
 }
 

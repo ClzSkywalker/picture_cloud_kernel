@@ -11,7 +11,7 @@ pub struct TagCqrsService {
 
 impl TagCqrsService {
     pub async fn find(&mut self) -> anyhow::Result<Vec<TagInfoItem>> {
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let tags = match self.tag_cqrs_respository.find().await {
             Ok(r) => r,
             Err(_) => {

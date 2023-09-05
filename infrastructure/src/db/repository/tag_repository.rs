@@ -45,7 +45,7 @@ impl TagRepository {
 
         let active =
             TagInfoEntity::find().from_raw_sql(Statement::from_string(DbBackend::Sqlite, sql));
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.all(r).await,
             None => active.all(&ctx.db).await,
@@ -68,7 +68,7 @@ impl TagRepository {
         let active =
             TagInfoEntity::find().from_raw_sql(Statement::from_string(DbBackend::Sqlite, sql));
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.all(r).await,
             None => active.all(&ctx.db).await,
@@ -89,8 +89,6 @@ impl IRepository for TagRepository {
     type AG = TagAggregate;
     type ID = i32;
     async fn insert(&self, ag: Self::AG) -> anyhow::Result<Self::AG> {
-        let ctx = self.ctx.lock().await;
-
         // 查询父类是否存在
         let mut prevs: Vec<TagInfoModel> = Vec::new();
 
@@ -103,18 +101,18 @@ impl IRepository for TagRepository {
             };
             if prevs.is_empty() {
                 anyhow::bail!(Errorx::new(
-                    ctx.locale,
+                    self.ctx.read().await.locale,
                     common::i18n::I18nKey::TagParentNotExist
                 ))
             }
         }
 
+        let ctx = self.ctx.read().await;
         let mut m = TagSerialize(ag.clone());
         m.created_at = Some(Local::now());
 
         let mut active: TagInfoActive = m.into();
         active.id = NotSet;
-        let ctx = self.ctx.lock().await;
         let res = match ctx.get_tx() {
             Some(r) => active.insert(r).await,
             None => active.insert(&ctx.db).await,
@@ -128,7 +126,7 @@ impl IRepository for TagRepository {
             }
         };
 
-        Ok(TagDeserialize(tag, Some(prevs), None))
+        Ok(TagDeserialize(tag, prevs, Vec::new()))
     }
 
     async fn delete(&self, id: Self::ID) -> anyhow::Result<()> {
@@ -138,7 +136,7 @@ impl IRepository for TagRepository {
             ..Default::default()
         })
         .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()));
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.exec(r).await,
             None => active.exec(&ctx.db).await,
@@ -158,7 +156,7 @@ impl IRepository for TagRepository {
         m.updated_at = Some(Local::now());
 
         let active: TagInfoActive = m.into();
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.update(r).await,
             None => active.update(&ctx.db).await,
@@ -177,7 +175,7 @@ impl IRepository for TagRepository {
         let active = TagInfoEntity::find_by_id(id)
             .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()))
             .limit(1);
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.one(r).await,
             None => active.one(&ctx.db).await,
@@ -207,7 +205,7 @@ impl IRepository for TagRepository {
             }
         };
 
-        Ok(Some(TagDeserialize(tag, Some(prevs), Some(nexts))))
+        Ok(Some(TagDeserialize(tag, prevs, nexts)))
     }
 }
 
@@ -224,7 +222,7 @@ impl ITagRespository for TagRepository {
                 .add(Expr::col(TagInfoColumn::Id).is_in(ids.clone())),
         );
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.exec(r).await,
             None => active.exec(&ctx.db).await,
@@ -251,7 +249,7 @@ impl ITagRespository for TagRepository {
                 .add(Expr::col(TagInfoColumn::Id).is_in(ids.clone())),
         );
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.exec(r).await,
             None => active.exec(&ctx.db).await,
@@ -276,7 +274,7 @@ impl ITagRespository for TagRepository {
             )
             .limit(1);
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.one(r).await,
             None => active.one(&ctx.db).await,
@@ -309,7 +307,7 @@ impl ITagRespository for TagRepository {
             }
         };
 
-        Ok(Some(TagDeserialize(tag, Some(prevs), Some(nexts))))
+        Ok(Some(TagDeserialize(tag, prevs, nexts)))
     }
 
     async fn exist_name(&self, name: String) -> anyhow::Result<bool> {
@@ -319,7 +317,7 @@ impl ITagRespository for TagRepository {
                 .add(Expr::col(TagInfoColumn::DeletedAt).is_null()),
         );
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.count(r).await,
             None => active.count(&ctx.db).await,
@@ -338,7 +336,7 @@ impl ITagRespository for TagRepository {
         let active = TagInfoEntity::find_by_id(id)
             .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()));
 
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let res = match ctx.get_tx() {
             Some(r) => active.count(r).await,
             None => active.count(&ctx.db).await,

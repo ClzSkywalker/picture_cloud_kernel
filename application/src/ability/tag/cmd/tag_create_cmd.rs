@@ -23,8 +23,8 @@ impl TagCreateCmd {
             name: self.name.clone(),
             parent_id: self.parent_id,
             sort: self.sort,
-            next: None,
-            prev: None,
+            next: Vec::new(),
+            prev: vec![self.parent_id],
         }
     }
 }

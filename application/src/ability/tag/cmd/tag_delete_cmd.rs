@@ -25,8 +25,8 @@ impl TagDeleteCmd {
             name: String::from(""),
             parent_id: 0,
             sort: 0,
-            next: None,
-            prev: None,
+            next: Vec::new(),
+            prev: Vec::new(),
         }
     }
 }

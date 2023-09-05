@@ -24,7 +24,7 @@ where
 
     // 检测名字、父标签是否已存在
     async fn check_handler(&mut self, cmd: &Self::CMD) -> anyhow::Result<()> {
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         match __self.tag_repository.exist_name(cmd.name.clone()).await {
             Ok(r) => {
                 if r {

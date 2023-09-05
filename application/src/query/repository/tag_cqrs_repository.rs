@@ -10,7 +10,7 @@ pub struct TagCqrsRepository {
 
 impl TagCqrsRepository {
     pub async fn find(&self) -> anyhow::Result<Vec<TagInfoModel>> {
-        let ctx = self.ctx.lock().await;
+        let ctx = self.ctx.read().await;
         let active = TagInfoEntity::find()
             .filter(Condition::all().add(Expr::col(TagInfoColumn::DeletedAt).is_null()));
 
